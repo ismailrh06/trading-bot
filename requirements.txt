@@ -1,0 +1,11 @@
+ccxt>=4.0
+pandas>=2.0
+numpy>=1.26
+matplotlib>=3.8
+PyYAML>=6.0
+python-dotenv>=1.0
+requests>=2.31
+pytest>=8.0
+
+# Dashboard Streamlit (optionnel — le bot fonctionne sans) :
+# streamlit>=1.30

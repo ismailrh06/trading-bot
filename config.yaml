@@ -1,0 +1,83 @@
+# ============================================================
+# Configuration du bot de trading
+#
+# MODE PAR DÉFAUT : paper (argent fictif).
+# Le mode "live" exige EN PLUS la variable d'environnement
+# CONFIRM_LIVE_TRADING=true dans .env — voir README.
+# ============================================================
+
+mode: paper # backtest | paper | live
+
+exchange:
+  # NB : binance est bloqué au niveau DNS sur cette machine/réseau (testé le
+  # 2026-07-03) — bybit fonctionne. Changer d'exchange = changer cette ligne.
+  id: bybit # n'importe quel id ccxt : binance, bybit, kraken, okx…
+  use_testnet: true # false = simulation interne (prix réels, fills simulés, zéro clé)
+  #                   true  = ordres réels sur le COMPTE DÉMO de l'exchange
+  #                           (clés testnet dans .env — testnet.bybit.com)
+
+symbols:
+  # XAUT/USDT (or) n'a pas de liquidité exploitable sur le testnet Bybit
+  # (spread ~18%, carnet quasi vide — vérifié le 2026-07-05 : les ordres au
+  # marché y sont annulés faute de contrepartie). BTC/USDT a une liquidité
+  # testnet profonde et sert de test technique de la mécanique du bot
+  # (ordres, stops, kill switch). Repasser sur l'or seulement pour du
+  # backtest tant qu'aucune stratégie n'y est rentable (voir reports/).
+  - BTC/USDT
+
+timeframe: 1h
+
+strategy:
+  name: ema_cross # ema_cross | breakout
+  min_confidence: 0.5 # score de confiance minimal pour prendre un signal
+  params:
+    ema_cross:
+      fast: 9
+      slow: 21
+      trend: 200
+      rsi_period: 14
+      rsi_min: 50 # RSI minimal pour confirmer un achat
+      rsi_max: 70 # au-dessus : trop tard, on n'achète pas
+      rsi_exit: 75 # sortie sur surchauffe
+    breakout:
+      lookback: 20 # largeur du range en bougies
+      volume_lookback: 20
+      volume_mult: 1.5 # le volume du breakout doit dépasser 1.5x la moyenne
+
+risk:
+  risk_per_trade_pct: 1.0 # % du capital risqué par trade (plafond dur : 2%)
+  max_position_pct: 25.0 # taille max d'une position en % du capital
+  atr_period: 14
+  atr_stop_mult: 2.0 # stop-loss = entrée − 2.0 × ATR
+  min_risk_reward: 2.0 # take-profit à au moins 2× la distance du stop
+  daily_loss_limit_pct: 5.0 # perte journalière max avant arrêt complet + alerte
+  max_open_positions: 3
+  close_positions_on_halt: true # fermer les positions quand la limite quotidienne saute
+
+backtest:
+  start: "2023-01-01"
+  end: "2024-12-31"
+  initial_capital: 10000
+  fee_pct: 0.1 # frais taker par ordre (0.1% = Binance spot standard)
+  slippage_bps: 5 # slippage par ordre au marché, en points de base
+  daily_loss_resume_next_day: true # en backtest on reprend le lendemain ; en live, arrêt définitif
+  reports_dir: reports
+
+paper:
+  initial_capital: 10000
+  fee_pct: 0.1
+  slippage_bps: 5
+
+execution:
+  poll_seconds: 30 # fréquence de surveillance des positions et du kill switch
+  candles_history: 400 # bougies chargées pour calculer les signaux (≥ warmup stratégie)
+
+monitoring:
+  log_dir: logs
+  state_dir: state
+  db_path: state/bot.db
+  heartbeat_hours: 12 # battement de cœur Telegram/Discord ("bot vivant") ; 0 = désactivé
+  telegram:
+    enabled: true # testé et fonctionnel le 2026-07-06 (@ismael_trading_alertes_bot)
+  discord:
+    enabled: true # webhook testé et fonctionnel le 2026-07-06

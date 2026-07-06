@@ -1,0 +1,14 @@
+# Secrets — ne JAMAIS commiter les clés API
+.env
+
+# Environnement Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Données et sorties générées
+data/
+logs/
+state/
+reports/

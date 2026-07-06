@@ -1,0 +1,14 @@
+# Secrets — ne doivent JAMAIS entrer dans l'image
+.env
+
+# Environnement local
+.venv/
+__pycache__/
+.pytest_cache/
+.git/
+
+# Données locales (le serveur a les siennes, sur volume persistant)
+data/
+logs/
+state/
+reports/
